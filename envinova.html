@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Envinova</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --green-dark: #1a3a2a;
+    --green-mid: #2d6a4f;
+    --green-light: #52b788;
+    --green-pale: #d8f3dc;
+    --green-accent: #40916c;
+    --off-white: #f8f9f5;
+    --warm-white: #ffffff;
+    --text-dark: #1c2b22;
+    --text-mid: #3d5a47;
+    --text-light: #6b8f76;
+    --border: #c8ddd0;
+    --shadow: 0 2px 20px rgba(26,58,42,0.08);
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    color: var(--text-dark);
+    background: var(--warm-white);
+    line-height: 1.6;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    background: rgba(255,255,255,0.95);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 5%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 68px;
+  }
+
+  .logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--green-dark);
+    letter-spacing: -0.5px;
+    text-decoration: none;
+  }
+
+  .logo span {
+    color: var(--green-light);
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 2rem;
+    list-style: none;
+  }
+
+  .nav-links a {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-mid);
+    text-decoration: none;
+    letter-spacing: 0.02em;
+    transition: color 0.2s;
+  }
+
+  .nav-links a:hover { color: var(--green-mid); }
+
+  .nav-cta {
+    background: var(--green-mid);
+    color: white !important;
+    padding: 0.5rem 1.25rem;
+    border-radius: 4px;
+    transition: background 0.2s !important;
+  }
+
+  .nav-cta:hover { background: var(--green-dark) !important; color: white !important; }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    background: var(--green-dark);
+    display: flex;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+    padding: 100px 5% 80px;
+  }
+
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 60% at 70% 50%, rgba(82,183,136,0.12) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 80% at 10% 80%, rgba(45,106,79,0.4) 0%, transparent 60%);
+  }
+
+  .hero-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(82,183,136,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(82,183,136,0.04) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 2;
+    max-width: 700px;
+  }
+
+  .hero-eyebrow {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--green-light);
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .hero-eyebrow::before {
+    content: '';
+    display: block;
+    width: 32px;
+    height: 1px;
+    background: var(--green-light);
+  }
+
+  .hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.5rem, 5vw, 4rem);
+    font-weight: 700;
+    color: white;
+    line-height: 1.15;
+    margin-bottom: 1.5rem;
+    letter-spacing: -0.5px;
+  }
+
+  .hero h1 em {
+    font-style: normal;
+    color: var(--green-light);
+  }
+
+  .hero-desc {
+    font-size: 1.05rem;
+    color: rgba(255,255,255,0.65);
+    max-width: 540px;
+    line-height: 1.7;
+    margin-bottom: 2.5rem;
+  }
+
+  .hero-actions {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .btn-primary {
+    background: var(--green-light);
+    color: var(--green-dark);
+    font-weight: 600;
+    font-size: 0.875rem;
+    padding: 0.875rem 2rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    letter-spacing: 0.02em;
+    transition: background 0.2s, transform 0.15s;
+  }
+
+  .btn-primary:hover { background: #74c9a0; transform: translateY(-1px); }
+
+  .btn-outline {
+    background: transparent;
+    color: rgba(255,255,255,0.8);
+    font-weight: 500;
+    font-size: 0.875rem;
+    padding: 0.875rem 2rem;
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    transition: border-color 0.2s, color 0.2s;
+  }
+
+  .btn-outline:hover { border-color: var(--green-light); color: var(--green-light); }
+
+  .hero-stats {
+    position: absolute;
+    bottom: 60px;
+    right: 5%;
+    display: flex;
+    gap: 3rem;
+    z-index: 2;
+  }
+
+  .stat {
+    text-align: center;
+  }
+
+  .stat-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--green-light);
+    line-height: 1;
+  }
+
+  .stat-label {
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.45);
+    letter-spacing: 0.05em;
+    margin-top: 4px;
+  }
+
+  /* SERVICES TABS SECTION */
+  .services {
+    padding: 100px 5%;
+    background: var(--off-white);
+  }
+
+  .section-header {
+    max-width: 600px;
+    margin-bottom: 4rem;
+  }
+
+  .section-eyebrow {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--green-accent);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .section-eyebrow::before {
+    content: '';
+    display: block;
+    width: 24px;
+    height: 2px;
+    background: var(--green-accent);
+  }
+
+  .section-header h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+    font-weight: 700;
+    color: var(--green-dark);
+    line-height: 1.2;
+    letter-spacing: -0.3px;
+  }
+
+  /* TABS */
+  .tabs-wrapper {
+    background: white;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+
+  .tabs-nav {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+    background: var(--off-white);
+  }
+
+  .tab-btn {
+    flex: 1;
+    padding: 1.25rem 2rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text-light);
+    letter-spacing: 0.02em;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s;
+    position: relative;
+  }
+
+  .tab-btn:hover { color: var(--green-mid); background: rgba(82,183,136,0.05); }
+
+  .tab-btn.active {
+    color: var(--green-mid);
+    border-bottom-color: var(--green-mid);
+    background: white;
+    font-weight: 600;
+  }
+
+  .tab-content {
+    display: none;
+    padding: 3rem;
+  }
+
+  .tab-content.active { display: block; }
+
+  .tab-intro {
+    font-size: 1rem;
+    color: var(--text-mid);
+    line-height: 1.75;
+    max-width: 680px;
+    margin-bottom: 3rem;
+    border-left: 3px solid var(--green-light);
+    padding-left: 1.25rem;
+  }
+
+  /* FEATURE CARDS IN TABS */
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 3rem;
+  }
+
+  .feature-card {
+    background: var(--off-white);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1.5rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .feature-card:hover {
+    border-color: var(--green-light);
+    box-shadow: 0 4px 16px rgba(40,116,79,0.08);
+  }
+
+  .feature-icon {
+    width: 40px;
+    height: 40px;
+    background: var(--green-pale);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+  }
+
+  .feature-icon svg { color: var(--green-mid); }
+
+  .feature-card h4 {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--green-dark);
+    margin-bottom: 0.5rem;
+  }
+
+  .feature-card p {
+    font-size: 0.82rem;
+    color: var(--text-light);
+    line-height: 1.6;
+  }
+
+  /* PROCESS STEPS */
+  .process {
+    margin-top: 1rem;
+  }
+
+  .process-title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-light);
+    margin-bottom: 1.5rem;
+  }
+
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 0;
+  }
+
+  .step {
+    padding: 1.5rem;
+    border: 1px solid var(--border);
+    border-right: none;
+    position: relative;
+    background: white;
+  }
+
+  .step:first-child { border-radius: 6px 0 0 6px; }
+  .step:last-child { border-right: 1px solid var(--border); border-radius: 0 6px 6px 0; }
+
+  .step-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--green-pale);
+    line-height: 1;
+    margin-bottom: 0.75rem;
+  }
+
+  .step h5 {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--green-dark);
+    margin-bottom: 0.4rem;
+  }
+
+  .step p {
+    font-size: 0.75rem;
+    color: var(--text-light);
+    line-height: 1.5;
+  }
+
+  .step-arrow {
+    position: absolute;
+    right: -13px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 24px;
+    height: 24px;
+    background: var(--green-mid);
+    clip-path: polygon(0 0, 60% 50%, 0 100%, 0 75%, 35% 50%, 0 25%);
+    z-index: 2;
+  }
+
+  /* WHY SECTION */
+  .why {
+    padding: 100px 5%;
+    background: white;
+  }
+
+  .why-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5rem;
+    align-items: center;
+  }
+
+  .why-text h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.8rem, 3vw, 2.5rem);
+    font-weight: 700;
+    color: var(--green-dark);
+    line-height: 1.25;
+    letter-spacing: -0.3px;
+    margin-bottom: 1.25rem;
+  }
+
+  .why-text p {
+    font-size: 0.95rem;
+    color: var(--text-mid);
+    line-height: 1.75;
+    margin-bottom: 1rem;
+  }
+
+  .why-points {
+    margin-top: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .why-point {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+
+  .why-point-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--green-light);
+    border-radius: 50%;
+    margin-top: 7px;
+    flex-shrink: 0;
+  }
+
+  .why-point p {
+    font-size: 0.88rem;
+    margin: 0;
+    color: var(--text-mid);
+  }
+
+  .why-visual {
+    display: grid;
+    grid-template-rows: auto auto;
+    gap: 1.25rem;
+  }
+
+  .why-card-big {
+    background: var(--green-dark);
+    border-radius: 8px;
+    padding: 2rem;
+    color: white;
+  }
+
+  .why-card-big .card-tag {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--green-light);
+    margin-bottom: 0.75rem;
+  }
+
+  .why-card-big h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: white;
+    line-height: 1.3;
+    margin-bottom: 0.75rem;
+  }
+
+  .why-card-big p {
+    font-size: 0.83rem;
+    color: rgba(255,255,255,0.6);
+    line-height: 1.6;
+  }
+
+  .why-cards-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+  }
+
+  .why-card-small {
+    background: var(--green-pale);
+    border-radius: 8px;
+    padding: 1.5rem;
+  }
+
+  .why-card-small .num {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--green-mid);
+    line-height: 1;
+    margin-bottom: 0.25rem;
+  }
+
+  .why-card-small p {
+    font-size: 0.8rem;
+    color: var(--text-mid);
+    line-height: 1.4;
+  }
+
+  /* CONTACT */
+  .contact {
+    padding: 100px 5%;
+    background: var(--green-dark);
+  }
+
+  .contact-inner {
+    max-width: 700px;
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  .contact .section-eyebrow { justify-content: center; color: var(--green-light); }
+  .contact .section-eyebrow::before { background: var(--green-light); }
+
+  .contact h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+    font-weight: 700;
+    color: white;
+    line-height: 1.2;
+    margin-bottom: 1rem;
+    letter-spacing: -0.3px;
+  }
+
+  .contact p {
+    font-size: 0.95rem;
+    color: rgba(255,255,255,0.55);
+    line-height: 1.7;
+    margin-bottom: 2.5rem;
+  }
+
+  .contact-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  .contact-form input,
+  .contact-form textarea {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 4px;
+    padding: 0.875rem 1rem;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.875rem;
+    color: white;
+    outline: none;
+    transition: border-color 0.2s;
+    width: 100%;
+  }
+
+  .contact-form input::placeholder,
+  .contact-form textarea::placeholder { color: rgba(255,255,255,0.3); }
+
+  .contact-form input:focus,
+  .contact-form textarea:focus { border-color: var(--green-light); }
+
+  .contact-form .full { grid-column: 1 / -1; }
+
+  .contact-form textarea { resize: vertical; min-height: 120px; }
+
+  .btn-submit {
+    grid-column: 1 / -1;
+    background: var(--green-light);
+    color: var(--green-dark);
+    font-weight: 700;
+    font-size: 0.875rem;
+    padding: 1rem 2.5rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    letter-spacing: 0.03em;
+    transition: background 0.2s, transform 0.15s;
+  }
+
+  .btn-submit:hover { background: #74c9a0; transform: translateY(-1px); }
+
+  /* FOOTER */
+  footer {
+    background: #111d16;
+    padding: 2.5rem 5%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-top: 1px solid rgba(255,255,255,0.05);
+  }
+
+  .footer-logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: white;
+    text-decoration: none;
+  }
+
+  .footer-logo span { color: var(--green-light); }
+
+  .footer-text {
+    font-size: 0.78rem;
+    color: rgba(255,255,255,0.25);
+  }
+
+  /* HAMBURGER */
+  .hamburger {
+    display: none;
+    flex-direction: column;
+    gap: 5px;
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 4px;
+  }
+
+  .hamburger span {
+    width: 24px;
+    height: 2px;
+    background: var(--green-dark);
+    border-radius: 2px;
+    display: block;
+    transition: all 0.3s;
+  }
+
+  @media (max-width: 768px) {
+    .hamburger { display: flex; }
+    .nav-links { display: none; }
+    .why-grid { grid-template-columns: 1fr; gap: 3rem; }
+    .contact-form { grid-template-columns: 1fr; }
+    .contact-form .full { grid-column: 1; }
+    .btn-submit { grid-column: 1; }
+    .hero-stats { display: none; }
+    .steps { grid-template-columns: 1fr 1fr; }
+    .step { border-right: 1px solid var(--border); border-bottom: none; }
+    .step:nth-child(odd) { border-right: none; }
+    footer { flex-direction: column; gap: 0.75rem; text-align: center; }
+    .tab-content { padding: 1.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="logo">Envi<span>nova</span></a>
+  <ul class="nav-links">
+    <li><a href="#sluzby">Služby</a></li>
+    <li><a href="#preco-my">O nás</a></li>
+    <li><a href="#kontakt" class="nav-cta">Kontakt</a></li>
+  </ul>
+  <button class="hamburger" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="hero-content">
+    <div class="hero-eyebrow">Environmentálne poradenstvo</div>
+    <h1>Staráme sa<br>o váš projekt<br>aj o <em>životné prostredie</em></h1>
+    <p class="hero-desc">Poskytujeme komplexné environmentálne štúdie a posudky. EIA, rozptylové štúdie, hluk, svetlotechnika — jeden partner pre celý projekt.</p>
+    <div class="hero-actions">
+      <a href="#sluzby" class="btn-primary">Naše služby</a>
+      <a href="#kontakt" class="btn-outline">Konzultácia zadarmo</a>
+    </div>
+  </div>
+  <div class="hero-stats">
+    <div class="stat">
+      <div class="stat-num">15+</div>
+      <div class="stat-label">Rokov skúseností</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">400+</div>
+      <div class="stat-label">Dokončených projektov</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">98%</div>
+      <div class="stat-label">Spokojných klientov</div>
+    </div>
+  </div>
+</section>
+
+<!-- SERVICES WITH TABS -->
+<section class="services" id="sluzby">
+  <div class="section-header">
+    <div class="section-eyebrow">Čo ponúkame</div>
+    <h2>Komplexné environmentálne<br>posudzovanie</h2>
+  </div>
+
+  <div class="tabs-wrapper">
+    <div class="tabs-nav">
+      <button class="tab-btn active" onclick="showTab('eia', this)">EIA</button>
+      <button class="tab-btn" onclick="showTab('rozptyl', this)">Rozptylové štúdie</button>
+    </div>
+
+    <!-- EIA TAB -->
+    <div id="tab-eia" class="tab-content active">
+      <p class="tab-intro">
+        EIA (Environmental Impact Assessment) je proces posudzovania vplyvov navrhovanej činnosti na životné prostredie. Sprevádzame vás celým procesom — od zisťovacieho konania až po záverečné stanovisko príslušného orgánu.
+      </p>
+
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+              <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+          </div>
+          <h4>Zisťovacie konanie</h4>
+          <p>Zámer a Oznámenie o zmene činnosti vrátane odborného posúdenia vplyvov a konzultácií s úradmi.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+              <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01m-.01 4h.01"/>
+            </svg>
+          </div>
+          <h4>Správa o hodnotení</h4>
+          <p>Povinné hodnotenie pre veľké stavby a priemyselné projekty so záväzným posúdením všetkých environmentálnych faktorov.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+              <path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+          </div>
+          <h4>Koordinácia s úradmi</h4>
+          <p>Aktívna komunikácia s MŽP SR, okresnými úradmi a dotknutými obcami počas celého procesu.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+              <path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+            </svg>
+          </div>
+          <h4>Poradenstvo a konzultácie</h4>
+          <p>Odborné poradenstvo v každej fáze projektu vrátane prípravy podkladov pre investičné rozhodnutia.</p>
+        </div>
+      </div>
+
+      <div class="process">
+        <div class="process-title">Priebeh procesu EIA</div>
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">01</div>
+            <h5>Predpríprava</h5>
+            <p>Analýza projektu a identifikácia povinností podľa zákona č. 24/2006 Z. z.</p>
+            <div class="step-arrow"></div>
+          </div>
+          <div class="step">
+            <div class="step-num">02</div>
+            <h5>Zámer / Oznámenie</h5>
+            <p>Spracovanie dokumentácie pre zisťovacie konanie a podanie na príslušný orgán.</p>
+            <div class="step-arrow"></div>
+          </div>
+          <div class="step">
+            <div class="step-num">03</div>
+            <h5>Hodnotenie</h5>
+            <p>Vypracovanie Správy o hodnotení vrátane odborných posudkov a meraní.</p>
+            <div class="step-arrow"></div>
+          </div>
+          <div class="step">
+            <div class="step-num">04</div>
+            <h5>Záverečné stanovisko</h5>
+            <p>Podpora pri verejnom prerokovaní a zapracovanie podmienok do projektu.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ROZPTYLOVÉ ŠTÚDIE TAB -->
+    <div id="tab-rozptyl" class="tab-content">
+      <p class="tab-intro">
+        Rozptylová (imisno-prenosová) štúdia hodnotí, ako sa znečisťujúce látky z konkrétneho zdroja šíria v ovzduší a aké imisné príspevky dosahujú v okolí. Výsledky slúžia ako podklad pre EIA, stavebné povolenia aj optimalizáciu technológií.
+      </p>
+
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+              <path d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"/>
+            </svg>
+          </div>
+          <h4>3D modelovanie rozptylu</h4>
+          <p>Výpočet koncentrácií znečisťujúcich látok pomocou overených gaussovských a lagranžovských modelov.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+              <path d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6-10l6-3m0 0l5.447 2.724A1 1 0 0121 7.618v10.764a1 1 0 01-1.447.894L15 17m0-10v13"/>
+            </svg>
+          </div>
+          <h4>Imisné mapy</h4>
+          <p>Grafické zobrazenie rozptylu znečisťujúcich látok v záujmovom území s farebným vyznačením prekročení limitov.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+              <path d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            </svg>
+          </div>
+          <h4>Návrh opatrení</h4>
+          <p>Odporúčania pre optimalizáciu výšky komínov, filtrácie a technologických parametrov na splnenie limitných hodnôt.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+              <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+            </svg>
+          </div>
+          <h4>Posúdenie vplyvov</h4>
+          <p>Komplexné vyhodnotenie imisného príspevku zdroja vo vzťahu k platným limitným hodnotám podľa NV SR 360/2010.</p>
+        </div>
+      </div>
+
+      <div class="process">
+        <div class="process-title">Postup spracovania štúdie</div>
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">01</div>
+            <h5>Vstupné dáta</h5>
+            <p>Zhromažďovanie emisných parametrov, meteorologických dát a charakteristík terénu.</p>
+            <div class="step-arrow"></div>
+          </div>
+          <div class="step">
+            <div class="step-num">02</div>
+            <h5>Výpočet modelu</h5>
+            <p>Rozptylový výpočet pomocou certifikovaného softvéru (SYMOS, AERMOD).</p>
+            <div class="step-arrow"></div>
+          </div>
+          <div class="step">
+            <div class="step-num">03</div>
+            <h5>Vyhodnotenie</h5>
+            <p>Porovnanie vypočítaných imisných príspevkov s platnými limitnými hodnotami.</p>
+            <div class="step-arrow"></div>
+          </div>
+          <div class="step">
+            <div class="step-num">04</div>
+            <h5>Správa a mapy</h5>
+            <p>Vypracovanie odbornej správy s imisnou mapou a návrhom opatrení.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WHY US -->
+<section class="why" id="preco-my">
+  <div class="why-grid">
+    <div class="why-text">
+      <div class="section-eyebrow">Prečo Envinova</div>
+      <h2>Viac ako 15 rokov chránime životné prostredie</h2>
+      <p>Naša filozofia je jednoduchá: komplexný prístup šetrí čas, peniaze a nervy. Posudzujeme viacero oblastí súčasne, čo prináša synergie a jednotný termín dokončenia.</p>
+      <p>Každý projekt je iný. Preto nepracujeme so šablónami — každú štúdiu tvoríme na mieru konkrétnemu zdroju, lokalite a legislatívnemu kontextu.</p>
+      <div class="why-points">
+        <div class="why-point">
+          <div class="why-point-dot"></div>
+          <p>Certifikovaní odborníci s praxou v EIA, ovzduší, hlukovej a svetlotechnickej oblasti</p>
+        </div>
+        <div class="why-point">
+          <div class="why-point-dot"></div>
+          <p>Vlastné meracie vybavenie — neprenášame zákazku na subdodávateľov</p>
+        </div>
+        <div class="why-point">
+          <div class="why-point-dot"></div>
+          <p>Dlhodobé vzťahy s priemyslom, developermi aj samosprávami po celom Slovensku</p>
+        </div>
+      </div>
+    </div>
+    <div class="why-visual">
+      <div class="why-card-big">
+        <div class="card-tag">Naša filozofia</div>
+        <h3>Synergia spracovania, efektívna komunikácia, jednotný termín.</h3>
+        <p>Komplexný prístup umožňuje posúdiť aj previazanosť jednotlivých faktorov a ich vzájomný vplyv na životné prostredie.</p>
+      </div>
+      <div class="why-cards-row">
+        <div class="why-card-small">
+          <div class="num">400+</div>
+          <p>Dokončených projektov na Slovensku aj v zahraničí</p>
+        </div>
+        <div class="why-card-small">
+          <div class="num">15+</div>
+          <p>Rokov odbornej praxe v environmentálnom posudzovaní</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section class="contact" id="kontakt">
+  <div class="contact-inner">
+    <div class="section-eyebrow">Kontaktujte nás</div>
+    <h2>Začnime spolu<br>váš projekt</h2>
+    <p>Prvá konzultácia je bezplatná. Napíšte nám o svojom projekte a my vám do 24 hodín odpovieme s orientačnou ponukou.</p>
+    <div class="contact-form">
+      <input type="text" placeholder="Meno a priezvisko">
+      <input type="email" placeholder="E-mailová adresa">
+      <input type="text" class="full" placeholder="Názov spoločnosti / projektu">
+      <textarea class="full" placeholder="Stručný opis projektu a požiadavky..."></textarea>
+      <button class="btn-submit">Odoslať dopyt</button>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <a href="#" class="footer-logo">Envi<span>nova</span></a>
+  <span class="footer-text">© 2025 Envinova s.r.o. — Environmentálne poradenstvo</span>
+</footer>
+
+<script>
+function showTab(id, btn) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  btn.classList.add('active');
+}
+</script>
+
+</body>
+</html>
