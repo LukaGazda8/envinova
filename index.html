@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Faktúra - Generátor PDF faktúr</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha384-JcnsjUPPylna1s1fvi1u12X5qjY5OL56iySh75FdtrwhO/SWXgMjoVqcKyIIWOLk" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js" integrity="sha384-fCAW/rDWORTbQXSiB7mOg0QtQ5c+r0f544y6XoKjuVva0nMBlCpNUjiFeG5iMdS3" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <h1>Generátor PDF Faktúr</h1>
+            <p>Vystavte faktúru jednoducho a rýchlo</p>
+        </div>
+    </header>
+
+    <main class="container">
+        <form id="invoiceForm">
+            <!-- SECTION: Invoice Basic Info -->
+            <section class="form-section">
+                <h2><span class="section-icon">&#128196;</span> Faktúra</h2>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="invoiceType">Druh faktúry</label>
+                        <select id="invoiceType" name="invoiceType">
+                            <option value="dph">Faktúra s DPH (platiteľ DPH) - Daňový doklad</option>
+                            <option value="bez_dph">Faktúra bez DPH (neplatiteľ DPH)</option>
+                            <option value="zalohova">Zálohová faktúra</option>
+                            <option value="proforma">Proforma faktúra</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="invoiceNumber">Číslo faktúry</label>
+                        <input type="text" id="invoiceNumber" name="invoiceNumber" placeholder="napr. 2026060001">
+                    </div>
+                    <div class="form-group">
+                        <label for="variableSymbol">Variabilný symbol</label>
+                        <input type="text" id="variableSymbol" name="variableSymbol" placeholder="Rovnaký ako číslo faktúry">
+                    </div>
+                    <div class="form-group">
+                        <label for="constantSymbol">Konštantný symbol</label>
+                        <input type="text" id="constantSymbol" name="constantSymbol" placeholder="Voliteľné">
+                    </div>
+                    <div class="form-group">
+                        <label for="specificSymbol">Špecifický symbol</label>
+                        <input type="text" id="specificSymbol" name="specificSymbol" placeholder="Voliteľné">
+                    </div>
+                    <div class="form-group">
+                        <label for="issuedBy">Vystavil</label>
+                        <input type="text" id="issuedBy" name="issuedBy" placeholder="Meno osoby">
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="issueDate">Dátum vydania</label>
+                        <input type="date" id="issueDate" name="issueDate">
+                    </div>
+                    <div class="form-group">
+                        <label for="deliveryDate">Dátum dodania</label>
+                        <input type="date" id="deliveryDate" name="deliveryDate">
+                    </div>
+                    <div class="form-group">
+                        <label for="dueDate">Dátum splatnosti</label>
+                        <input type="date" id="dueDate" name="dueDate">
+                    </div>
+                    <div class="form-group">
+                        <label for="paymentMethod">Forma úhrady</label>
+                        <select id="paymentMethod" name="paymentMethod">
+                            <option value="prevod">Bankový prevod</option>
+                            <option value="hotovost">Hotovosť</option>
+                            <option value="karta">Platobná karta</option>
+                            <option value="dobierka">Dobierka</option>
+                            <option value="paypal">PayPal</option>
+                            <option value="iny">Iný</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="bankAccount">Číslo účtu / IBAN</label>
+                        <input type="text" id="bankAccount" name="bankAccount" placeholder="SK89 0200 0000 0000 1234 5678">
+                    </div>
+                    <div class="form-group">
+                        <label for="bankName">Názov banky</label>
+                        <input type="text" id="bankName" name="bankName" placeholder="Názov banky">
+                    </div>
+                    <div class="form-group">
+                        <label for="swift">SWIFT/BIC</label>
+                        <input type="text" id="swift" name="swift" placeholder="napr. SUBASKBX">
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION: Settings -->
+            <section class="form-section collapsible">
+                <h2 class="collapsible-header" onclick="toggleSection(this)">
+                    <span class="section-icon">&#9881;</span> Nastavenie
+                    <span class="toggle-icon">&#9660;</span>
+                </h2>
+                <div class="collapsible-content">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="invoiceLang">Jazyk faktúry</label>
+                            <select id="invoiceLang" name="invoiceLang">
+                                <option value="sk">Slovensky</option>
+                                <option value="cz">Česky</option>
+                                <option value="en">English</option>
+                                <option value="de">Deutsch</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="currency">Mena</label>
+                            <select id="currency" name="currency">
+                                <option value="EUR">EUR - Euro (&#8364;)</option>
+                                <option value="CZK">CZK - Česká koruna (Kč)</option>
+                                <option value="USD">USD - US Dollar ($)</option>
+                                <option value="GBP">GBP - British Pound (&#163;)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="rounding">Zaokrúhľovanie</label>
+                            <select id="rounding" name="rounding">
+                                <option value="none">Žiadne</option>
+                                <option value="0.01">Na centy (0.01)</option>
+                                <option value="0.05">Na 5 centov (0.05)</option>
+                                <option value="0.10">Na 10 centov (0.10)</option>
+                                <option value="1">Na celé (1.00)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group full-width">
+                            <label for="registryInfo">Informácie o zapísaní do registru</label>
+                            <textarea id="registryInfo" name="registryInfo" rows="2" placeholder="napr. Zapísaný v Živnostenskom registri Okresného úradu..."></textarea>
+                        </div>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="logoUpload">Logo (voliteľné)</label>
+                            <input type="file" id="logoUpload" name="logoUpload" accept="image/png,image/jpeg,image/gif">
+                        </div>
+                        <div class="form-group">
+                            <label for="stampUpload">Pečiatka (voliteľné)</label>
+                            <input type="file" id="stampUpload" name="stampUpload" accept="image/png,image/jpeg,image/gif">
+                        </div>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="invoiceColor">Farba faktúry</label>
+                            <input type="color" id="invoiceColor" name="invoiceColor" value="#2196F3">
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION: Supplier Info -->
+            <section class="form-section">
+                <h2><span class="section-icon">&#128100;</span> Dodávateľ (Informácie o vás)</h2>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="sellerName">Meno / Názov firmy *</label>
+                        <input type="text" id="sellerName" name="sellerName" required placeholder="Názov firmy alebo meno">
+                    </div>
+                    <div class="form-group">
+                        <label for="sellerICO">IČO</label>
+                        <input type="text" id="sellerICO" name="sellerICO" placeholder="12345678">
+                    </div>
+                    <div class="form-group">
+                        <label for="sellerDIC">DIČ</label>
+                        <input type="text" id="sellerDIC" name="sellerDIC" placeholder="1234567890">
+                    </div>
+                    <div class="form-group">
+                        <label for="sellerICDPH">IČ DPH</label>
+                        <input type="text" id="sellerICDPH" name="sellerICDPH" placeholder="SK1234567890">
+                    </div>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="sellerStreet">Ulica</label>
+                        <input type="text" id="sellerStreet" name="sellerStreet" placeholder="Ulica a číslo">
+                    </div>
+                    <div class="form-group">
+                        <label for="sellerCity">Mesto</label>
+                        <input type="text" id="sellerCity" name="sellerCity" placeholder="Mesto">
+                    </div>
+                    <div class="form-group">
+                        <label for="sellerZip">PSČ</label>
+                        <input type="text" id="sellerZip" name="sellerZip" placeholder="010 01">
+                    </div>
+                    <div class="form-group">
+                        <label for="sellerCountry">Krajina</label>
+                        <select id="sellerCountry" name="sellerCountry">
+                            <option value="Slovensko">Slovensko</option>
+                            <option value="Česko">Česko</option>
+                            <option value="Rakúsko">Rakúsko</option>
+                            <option value="Nemecko">Nemecko</option>
+                            <option value="Poľsko">Poľsko</option>
+                            <option value="Maďarsko">Maďarsko</option>
+                            <option value="Iné">Iné</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="sellerEmail">E-mail</label>
+                        <input type="email" id="sellerEmail" name="sellerEmail" placeholder="email@firma.sk">
+                    </div>
+                    <div class="form-group">
+                        <label for="sellerPhone">Telefón</label>
+                        <input type="tel" id="sellerPhone" name="sellerPhone" placeholder="+421 900 123 456">
+                    </div>
+                    <div class="form-group">
+                        <label for="sellerWeb">Web</label>
+                        <input type="url" id="sellerWeb" name="sellerWeb" placeholder="https://www.firma.sk">
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION: Customer Info -->
+            <section class="form-section">
+                <h2><span class="section-icon">&#128101;</span> Odberateľ</h2>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="buyerName">Meno / Názov firmy *</label>
+                        <input type="text" id="buyerName" name="buyerName" required placeholder="Názov firmy alebo meno">
+                    </div>
+                    <div class="form-group">
+                        <label for="buyerICO">IČO</label>
+                        <input type="text" id="buyerICO" name="buyerICO" placeholder="12345678">
+                    </div>
+                    <div class="form-group">
+                        <label for="buyerDIC">DIČ</label>
+                        <input type="text" id="buyerDIC" name="buyerDIC" placeholder="1234567890">
+                    </div>
+                    <div class="form-group">
+                        <label for="buyerICDPH">IČ DPH</label>
+                        <input type="text" id="buyerICDPH" name="buyerICDPH" placeholder="SK1234567890">
+                    </div>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="buyerStreet">Ulica</label>
+                        <input type="text" id="buyerStreet" name="buyerStreet" placeholder="Ulica a číslo">
+                    </div>
+                    <div class="form-group">
+                        <label for="buyerCity">Mesto</label>
+                        <input type="text" id="buyerCity" name="buyerCity" placeholder="Mesto">
+                    </div>
+                    <div class="form-group">
+                        <label for="buyerZip">PSČ</label>
+                        <input type="text" id="buyerZip" name="buyerZip" placeholder="010 01">
+                    </div>
+                    <div class="form-group">
+                        <label for="buyerCountry">Krajina</label>
+                        <select id="buyerCountry" name="buyerCountry">
+                            <option value="Slovensko">Slovensko</option>
+                            <option value="Česko">Česko</option>
+                            <option value="Rakúsko">Rakúsko</option>
+                            <option value="Nemecko">Nemecko</option>
+                            <option value="Poľsko">Poľsko</option>
+                            <option value="Maďarsko">Maďarsko</option>
+                            <option value="Iné">Iné</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="buyerEmail">E-mail</label>
+                        <input type="email" id="buyerEmail" name="buyerEmail" placeholder="email@zakaznik.sk">
+                    </div>
+                    <div class="form-group">
+                        <label for="buyerPhone">Telefón</label>
+                        <input type="tel" id="buyerPhone" name="buyerPhone" placeholder="+421 900 123 456">
+                    </div>
+                    <div class="form-group">
+                        <label for="buyerWeb">Web</label>
+                        <input type="url" id="buyerWeb" name="buyerWeb" placeholder="https://www.zakaznik.sk">
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION: Invoice Items -->
+            <section class="form-section">
+                <h2><span class="section-icon">&#128176;</span> Položky faktúry</h2>
+                <div class="pricing-toggle">
+                    <label>Zadávanie cien:</label>
+                    <label class="radio-label"><input type="radio" name="pricingMode" value="withVat" checked> S DPH</label>
+                    <label class="radio-label"><input type="radio" name="pricingMode" value="withoutVat"> Bez DPH</label>
+                </div>
+                <div class="items-table-wrapper">
+                    <table class="items-table" id="itemsTable">
+                        <thead>
+                            <tr>
+                                <th class="col-qty">Počet</th>
+                                <th class="col-unit">M.J.</th>
+                                <th class="col-desc">Popis</th>
+                                <th class="col-vat">DPH %</th>
+                                <th class="col-price">Cena</th>
+                                <th class="col-total">Celkom</th>
+                                <th class="col-actions"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="itemsBody">
+                            <tr class="item-row">
+                                <td><input type="number" class="item-qty" value="1" min="0" step="0.01" onchange="calculateTotals()"></td>
+                                <td>
+                                    <select class="item-unit">
+                                        <option value="ks">ks</option>
+                                        <option value="hod">hod</option>
+                                        <option value="m">m</option>
+                                        <option value="m2">m&#178;</option>
+                                        <option value="m3">m&#179;</option>
+                                        <option value="kg">kg</option>
+                                        <option value="l">l</option>
+                                        <option value="km">km</option>
+                                        <option value="bal">bal</option>
+                                        <option value="">-</option>
+                                    </select>
+                                </td>
+                                <td><input type="text" class="item-desc" placeholder="Popis položky"></td>
+                                <td>
+                                    <select class="item-vat" onchange="calculateTotals()">
+                                        <option value="0">0 %</option>
+                                        <option value="10">10 %</option>
+                                        <option value="20" selected>20 %</option>
+                                        <option value="23">23 %</option>
+                                    </select>
+                                </td>
+                                <td><input type="number" class="item-price" value="0.00" min="0" step="0.01" onchange="calculateTotals()"></td>
+                                <td><span class="item-total">0,00</span></td>
+                                <td><button type="button" class="btn-remove" onclick="removeItem(this)" title="Odstrániť">&#10005;</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="items-actions">
+                    <button type="button" class="btn-add" onclick="addItem()">+ Pridať položku</button>
+                    <button type="button" class="btn-discount" onclick="toggleDiscount()">% Zľava na celú faktúru</button>
+                </div>
+
+                <div id="discountSection" class="discount-section hidden">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="discountType">Typ zľavy</label>
+                            <select id="discountType" name="discountType" onchange="calculateTotals()">
+                                <option value="percent">Percentuálna (%)</option>
+                                <option value="fixed">Pevná suma</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="discountValue">Hodnota zľavy</label>
+                            <input type="number" id="discountValue" name="discountValue" value="0" min="0" step="0.01" onchange="calculateTotals()">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group full-width">
+                    <label for="invoiceNote">Poznámka k faktúre</label>
+                    <textarea id="invoiceNote" name="invoiceNote" rows="3" placeholder="Voliteľná poznámka zobrazená na faktúre..."></textarea>
+                </div>
+
+                <div class="totals-section">
+                    <table class="totals-table">
+                        <tr>
+                            <td>Celkom bez DPH:</td>
+                            <td id="totalWithoutVat">0,00 &#8364;</td>
+                        </tr>
+                        <tr id="vatRow">
+                            <td>DPH:</td>
+                            <td id="totalVat">0,00 &#8364;</td>
+                        </tr>
+                        <tr id="discountRow" class="hidden">
+                            <td>Zľava:</td>
+                            <td id="totalDiscount">-0,00 &#8364;</td>
+                        </tr>
+                        <tr class="total-final">
+                            <td><strong>Celkom s DPH:</strong></td>
+                            <td id="totalWithVat"><strong>0,00 &#8364;</strong></td>
+                        </tr>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Actions -->
+            <div class="form-actions">
+                <button type="button" class="btn-primary" onclick="generatePDF()">
+                    &#128229; Stiahnuť PDF
+                </button>
+                <button type="button" class="btn-secondary" onclick="previewInvoice()">
+                    &#128065; Náhľad
+                </button>
+                <button type="button" class="btn-secondary" onclick="saveData()">
+                    &#128190; Uložiť údaje
+                </button>
+                <button type="button" class="btn-secondary" onclick="loadData()">
+                    &#128194; Načítať údaje
+                </button>
+            </div>
+        </form>
+    </main>
+
+    <footer class="site-footer">
+        <p>Generátor PDF faktúr &copy; 2026 | Inšpirované fakturaonline.sk</p>
+    </footer>
+
+    <!-- Preview Modal -->
+    <div id="previewModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Náhľad faktúry</h3>
+                <button type="button" class="btn-close" onclick="closePreview()">&#10005;</button>
+            </div>
+            <div class="modal-body" id="previewBody"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn-primary" onclick="generatePDF()">&#128229; Stiahnuť PDF</button>
+                <button type="button" class="btn-secondary" onclick="closePreview()">Zavrieť</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="invoice.js"></script>
+</body>
+</html>
