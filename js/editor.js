@@ -1,6 +1,7 @@
 // === Editor dokladu (faktúra / cenová ponuka / objednávka) ===
 
 let editorDoc = null;
+let editorSnapshot = '';
 
 function editorOptions(map, selected) {
     return Object.keys(map)
@@ -191,7 +192,7 @@ function editorHtml(doc) {
 
     return `
         ${doc.relatedFrom && doc.relatedFrom.number
-            ? `<div class="related-note">Doklad bol vytvorený z ${esc(Store.DOC_TYPES[doc.relatedFrom.type].label.toLowerCase())} <strong>${esc(doc.relatedFrom.number)}</strong>.</div>`
+            ? `<div class="related-note">Doklad bol vytvorený z ${esc(Store.DOC_TYPES[doc.relatedFrom.type].genitive)} <strong>${esc(doc.relatedFrom.number)}</strong>.</div>`
             : ''}
 
         <section class="form-section">
@@ -370,17 +371,20 @@ function refreshEditorTotals() {
     const summary = document.getElementById('editorSummary');
     if (!summary) return;
     summary.innerHTML = `
+        ${totals.discount > 0 ? `
+            <div class="sum"><span>Medzisúčet</span><strong>${Calc.formatAmount(totals.useVat ? totals.grossBeforeDiscount : totals.subtotalBeforeDiscount)} ${currency}</strong></div>
+            <div class="sum"><span>Zľava</span><strong>-${Calc.formatAmount(totals.discount)} ${currency}</strong></div>` : ''}
         ${totals.useVat ? `
             <div class="sum"><span>Celkom bez DPH</span><strong>${Calc.formatAmount(totals.subtotal)} ${currency}</strong></div>
             <div class="sum"><span>DPH</span><strong>${Calc.formatAmount(totals.vatTotal)} ${currency}</strong></div>` : `
             <div class="sum"><span>Celkom</span><strong>${Calc.formatAmount(totals.subtotal)} ${currency}</strong></div>`}
-        ${totals.discount > 0 ? `<div class="sum"><span>Zľava</span><strong>-${Calc.formatAmount(totals.discount)} ${currency}</strong></div>` : ''}
         ${totals.roundingDiff !== 0 ? `<div class="sum"><span>Zaokrúhlenie</span><strong>${Calc.formatAmount(totals.roundingDiff)} ${currency}</strong></div>` : ''}
         <div class="sum final"><span>Na úhradu</span><strong>${Calc.formatAmount(totals.total)} ${currency}</strong></div>`;
 }
 
 function openEditor(doc) {
     editorDoc = doc;
+    editorSnapshot = '';
     const existing = Boolean(Store.getDocument(doc.id));
     document.getElementById('editorTitle').textContent = existing
         ? `${Store.DOC_TYPES[doc.type].label} ${doc.number}`
@@ -389,10 +393,18 @@ function openEditor(doc) {
     document.getElementById('editorOverlay').classList.remove('hidden');
     document.getElementById('editorBody').scrollTop = 0;
     refreshEditorTotals();
+    editorSnapshot = JSON.stringify(readEditor());
+}
+
+// Neuložené zmeny voči stavu pri otvorení editora.
+function isEditorDirty() {
+    if (!editorDoc || !editorSnapshot) return false;
+    return JSON.stringify(readEditor()) !== editorSnapshot;
 }
 
 function closeEditor() {
     editorDoc = null;
+    editorSnapshot = '';
     document.getElementById('editorOverlay').classList.add('hidden');
     document.getElementById('editorBody').innerHTML = '';
 }
@@ -436,13 +448,39 @@ function saveEditorDocument() {
         UI.toast('Zadajte číslo dokladu.', 'error');
         return null;
     }
+    if (!doc.issueDate) {
+        UI.toast('Zadajte dátum vystavenia.', 'error');
+        return null;
+    }
     if (doc.items.every(item => !item.desc && !item.price)) {
         UI.toast('Doklad neobsahuje žiadnu vyplnenú položku.', 'error');
         return null;
     }
+    if (Store.numberExists(doc.type, doc.number, doc.id)) {
+        UI.toast(`Doklad s číslom ${doc.number} už existuje.`, 'error');
+        return null;
+    }
+    if (doc.type === 'faktura' && doc.dueDate && doc.issueDate && doc.dueDate < doc.issueDate) {
+        UI.toast('Dátum splatnosti nemôže byť skôr ako dátum vystavenia.', 'error');
+        return null;
+    }
+    if (doc.type === 'ponuka' && doc.validUntil && doc.issueDate && doc.validUntil < doc.issueDate) {
+        UI.toast('Platnosť ponuky nemôže skončiť pred dátumom vystavenia.', 'error');
+        return null;
+    }
 
-    const saved = Store.saveDocument(doc);
+    doc.items = doc.items.filter(item => item.desc || item.price);
+
+    let saved;
+    try {
+        saved = Store.saveDocument(doc);
+    } catch (err) {
+        console.error(err);
+        UI.toast(err.message || 'Doklad sa nepodarilo uložiť.', 'error');
+        return null;
+    }
     editorDoc = saved;
+    editorSnapshot = '';
     UI.toast(`${Store.DOC_TYPES[saved.type].label} ${saved.number} bola uložená.`, 'success');
     return saved;
 }
@@ -456,5 +494,6 @@ window.Editor = {
     editorRemoveItem,
     applyContactToEditor,
     saveEditorDocument,
+    isEditorDirty,
     isOpen: () => Boolean(editorDoc),
 };

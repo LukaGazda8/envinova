@@ -44,8 +44,13 @@ function formatDate(dateStr) {
     return `${String(date.getDate()).padStart(2, '0')}.${String(date.getMonth() + 1).padStart(2, '0')}.${date.getFullYear()}`;
 }
 
+// Lokálny dátum (toISOString by v SR posunul deň po 22:00 na nasledujúci).
+function toIsoDate(date) {
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+}
+
 function todayIso() {
-    return new Date().toISOString().split('T')[0];
+    return toIsoDate(new Date());
 }
 
 function isVatDocument(doc) {
@@ -100,6 +105,10 @@ function computeTotals(doc) {
     vatTotal = round2(vatTotal);
     let gross = round2(subtotal + vatTotal);
 
+    const subtotalBeforeDiscount = subtotal;
+    const vatBeforeDiscount = vatTotal;
+    const grossBeforeDiscount = gross;
+
     let discount = 0;
     const discountValue = Number(doc.discountValue) || 0;
     if (discountValue > 0) {
@@ -126,6 +135,9 @@ function computeTotals(doc) {
         lines,
         subtotal,
         vatTotal,
+        subtotalBeforeDiscount,
+        vatBeforeDiscount,
+        grossBeforeDiscount,
         discount,
         gross,
         roundingDiff,
@@ -193,6 +205,7 @@ window.Calc = {
     formatMoney,
     formatQty,
     formatDate,
+    toIsoDate,
     todayIso,
     computeTotals,
     isVatDocument,

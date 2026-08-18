@@ -14,8 +14,25 @@ function sumTotals(docs) {
     return docs.reduce((sum, doc) => sum + docTotal(doc), 0);
 }
 
+// Slovenské skloňovanie: 1 doklad, 2-4 doklady, 0/5+ dokladov
+function plural(count, one, few, many) {
+    if (count === 1) return one;
+    if (count >= 2 && count <= 4) return few;
+    return many;
+}
+
+function pluralInvoices(count) {
+    return plural(count, 'faktúra', 'faktúry', 'faktúr');
+}
+
 function docCurrency(docs) {
     return docs.length ? docs[0].currency : Store.getSettings().currency;
+}
+
+// Súčet má zmysel len ak majú všetky doklady rovnakú menu.
+function singleCurrency(docs) {
+    const currencies = new Set(docs.map(doc => doc.currency));
+    return currencies.size > 1 ? null : docCurrency(docs);
 }
 
 function emptyState(message, actionHtml) {
@@ -27,9 +44,11 @@ function emptyState(message, actionHtml) {
 function renderDashboard(container) {
     const documents = Store.getDocuments();
     const invoices = documents.filter(doc => doc.type === 'faktura' && doc.status !== 'stornovana');
-    const paid = invoices.filter(doc => doc.status === 'zaplatena');
-    const unpaid = invoices.filter(doc => doc.status !== 'zaplatena' && doc.status !== 'koncept');
-    const overdue = invoices.filter(Calc.isOverdue);
+    const issued = invoices.filter(doc => doc.status !== 'koncept');
+    const drafts = invoices.filter(doc => doc.status === 'koncept');
+    const paid = issued.filter(doc => doc.status === 'zaplatena');
+    const unpaid = issued.filter(doc => doc.status !== 'zaplatena');
+    const overdue = issued.filter(Calc.isOverdue);
     const quotes = Store.getDocuments('ponuka');
     const openQuotes = quotes.filter(doc => doc.status === 'koncept' || doc.status === 'odoslana');
     const orders = Store.getDocuments('objednavka');
@@ -45,7 +64,7 @@ function renderDashboard(container) {
         date.setDate(1);
         date.setMonth(date.getMonth() - offset);
         const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-        const monthInvoices = invoices.filter(doc => (doc.issueDate || '').startsWith(key));
+        const monthInvoices = issued.filter(doc => (doc.issueDate || '').startsWith(key));
         months.push({
             key,
             label: `${String(date.getMonth() + 1).padStart(2, '0')}/${String(date.getFullYear()).slice(-2)}`,
@@ -64,13 +83,13 @@ function renderDashboard(container) {
         <div class="stat-grid">
             <div class="stat accent">
                 <div class="stat-label">Fakturované ${year}</div>
-                <div class="stat-value">${Calc.formatMoney(sumTotals(invoices.filter(doc => (doc.issueDate || '').startsWith(String(year)))), currency)}</div>
-                <div class="stat-sub">Zaplatené: ${Calc.formatMoney(sumTotals(paidThisYear), currency)}</div>
+                <div class="stat-value">${Calc.formatMoney(sumTotals(issued.filter(doc => (doc.issueDate || '').startsWith(String(year)))), currency)}</div>
+                <div class="stat-sub">Zaplatené: ${Calc.formatMoney(sumTotals(paidThisYear), currency)}${drafts.length ? ` · konceptov: ${drafts.length}` : ''}</div>
             </div>
             <div class="stat danger">
                 <div class="stat-label">Neuhradené faktúry</div>
                 <div class="stat-value">${Calc.formatMoney(sumTotals(unpaid), currency)}</div>
-                <div class="stat-sub">${unpaid.length} faktúr, po splatnosti ${overdue.length}</div>
+                <div class="stat-sub">${unpaid.length} ${pluralInvoices(unpaid.length)}, po splatnosti ${overdue.length}</div>
             </div>
             <div class="stat">
                 <div class="stat-label">Otvorené cenové ponuky</div>
@@ -244,7 +263,7 @@ function renderDocumentList(container, type) {
             </div>
 
             <div class="stat-sub" style="margin-bottom:0.8rem">
-                Zobrazených ${docs.length} dokladov · celkom ${Calc.formatMoney(sumTotals(docs), docCurrency(docs))}
+                Zobrazené: ${docs.length} ${plural(docs.length, 'doklad', 'doklady', 'dokladov')}${singleCurrency(docs) ? ` · celkom ${Calc.formatMoney(sumTotals(docs), singleCurrency(docs))}` : ''}
             </div>
 
             ${docs.length ? `
@@ -294,7 +313,18 @@ function renderDocumentList(container, type) {
         if (!element) return;
         element.addEventListener(event || 'change', () => {
             filters[key] = element.value;
+            const wasFocused = document.activeElement === element;
             renderDocumentList(container, type);
+            if (wasFocused) {
+                const fresh = document.getElementById(id);
+                if (fresh) {
+                    fresh.focus();
+                    if (typeof fresh.setSelectionRange === 'function' && fresh.type !== 'date') {
+                        const end = fresh.value.length;
+                        fresh.setSelectionRange(end, end);
+                    }
+                }
+            }
         });
     };
     bind('filterSearch', 'search', 'input');
@@ -318,7 +348,7 @@ function exportDocumentsCsv(type) {
             doc.number,
             Store.DOC_TYPES[doc.type].statuses[doc.status] || doc.status,
             doc.issueDate,
-            doc.type === 'faktura' ? doc.dueDate : doc.validUntil || '',
+            (doc.type === 'faktura' ? doc.dueDate : doc.type === 'ponuka' ? doc.validUntil : doc.deliveryDate) || '',
             doc.customer.name,
             doc.customer.ico,
             totals.subtotal.toFixed(2),
@@ -592,9 +622,17 @@ function renderSettings(container) {
         logoInput.addEventListener('change', event => {
             const file = event.target.files[0];
             if (!file) return;
+            if (file.size > 1024 * 1024) {
+                UI.toast('Logo je príliš veľké (max. 1 MB).', 'error');
+                event.target.value = '';
+                return;
+            }
             const reader = new FileReader();
             reader.onload = () => {
-                Store.saveSettings({ logo: reader.result });
+                if (!Store.saveSettings({ logo: reader.result })) {
+                    UI.toast('Logo sa nepodarilo uložiť – úložisko prehliadača je plné.', 'error');
+                    return;
+                }
                 UI.toast('Logo bolo uložené.', 'success');
                 renderSettings(container);
             };

@@ -72,14 +72,28 @@ function actionDelete(id) {
 }
 
 function actionConvert(id, targetType) {
-    const created = Store.convertDocument(id, targetType);
+    let created;
+    try {
+        created = Store.convertDocument(id, targetType);
+    } catch (err) {
+        console.error(err);
+        UI.toast(err.message || 'Doklad sa nepodarilo vytvoriť.', 'error');
+        return;
+    }
     if (!created) return;
     UI.toast(`Vytvorený nový doklad ${created.number}.`, 'success');
     Editor.openEditor(created);
 }
 
 function actionDuplicate(id) {
-    const copy = Store.duplicateDocument(id);
+    let copy;
+    try {
+        copy = Store.duplicateDocument(id);
+    } catch (err) {
+        console.error(err);
+        UI.toast(err.message || 'Doklad sa nepodarilo duplikovať.', 'error');
+        return;
+    }
     if (!copy) return;
     UI.toast(`Doklad bol duplikovaný ako ${copy.number}.`, 'success');
     Editor.openEditor(copy);
@@ -147,7 +161,10 @@ function importData(file) {
     reader.onload = () => {
         try {
             const payload = JSON.parse(reader.result);
-            const merge = window.confirm('Zlúčiť so existujúcimi údajmi? OK = zlúčiť, Zrušiť = prepísať všetko.');
+            if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
+                throw new Error('Neplatný formát zálohy.');
+            }
+            const merge = window.confirm('Zlúčiť s existujúcimi údajmi? OK = zlúčiť, Zrušiť = prepísať všetko.');
             const result = Store.importAll(payload, merge ? 'merge' : 'replace');
             UI.toast(`Import: ${result.documents} dokladov, ${result.contacts} kontaktov, ${result.catalog} položiek.`, 'success');
             refresh();
@@ -178,6 +195,12 @@ async function editorPdf() {
     }
 }
 
+// Pri neuložených zmenách sa najprv spýta.
+function closeEditorSafely() {
+    if (Editor.isEditorDirty() && !window.confirm('Doklad má neuložené zmeny. Zavrieť bez uloženia?')) return;
+    Editor.closeEditor();
+}
+
 function editorSave() {
     const saved = Editor.saveEditorDocument();
     if (!saved) return;
@@ -198,8 +221,18 @@ function editorSaveCustomerAsContact() {
         UI.toast('Zadajte názov odberateľa.', 'error');
         return;
     }
-    Store.saveContact(Object.assign({}, doc.customer));
-    UI.toast('Odberateľ bol uložený do kontaktov.', 'success');
+    const key = value => String(value || '').trim().toLowerCase();
+    const existing = Store.getContacts().find(contact =>
+        key(contact.name) === key(doc.customer.name) && key(contact.ico) === key(doc.customer.ico));
+    const saved = Store.saveContact(Object.assign({}, doc.customer, existing ? { id: existing.id } : {}));
+    const picker = document.getElementById('contactPicker');
+    if (picker) {
+        if (!Array.from(picker.options).some(option => option.value === saved.id)) {
+            picker.insertAdjacentHTML('beforeend', `<option value="${saved.id}">${Calc.escapeHtml(saved.name)}</option>`);
+        }
+        picker.value = saved.id;
+    }
+    UI.toast(existing ? 'Kontakt bol aktualizovaný.' : 'Odberateľ bol uložený do kontaktov.', 'success');
 }
 
 // === Delegovanie akcií ===
@@ -266,7 +299,7 @@ const ACTIONS = {
         refresh();
     },
     'modal-close': () => UI.closeModal(),
-    'editor-close': () => Editor.closeEditor(),
+    'editor-close': () => closeEditorSafely(),
     'editor-save': () => editorSave(),
     'editor-pdf': () => editorPdf(),
     'editor-preview': () => UI.showDocumentPreview(Editor.readEditor()),
@@ -321,7 +354,14 @@ document.addEventListener('keydown', event => {
     if (!document.getElementById('modal').classList.contains('hidden')) {
         UI.closeModal();
     } else if (Editor.isOpen()) {
-        Editor.closeEditor();
+        closeEditorSafely();
+    }
+});
+
+window.addEventListener('beforeunload', event => {
+    if (Editor.isOpen() && Editor.isEditorDirty()) {
+        event.preventDefault();
+        event.returnValue = '';
     }
 });
 

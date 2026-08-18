@@ -186,7 +186,7 @@ async function buildPdf(document_) {
     };
 
     const supplierEnd = drawParty('DODÁVATEĽ', document_.supplier || {}, leftX);
-    const customerEnd = drawParty(document_.type === 'objednavka' ? 'ODBERATEĽ' : 'ODBERATEĽ', document_.customer || {}, rightX);
+    const customerEnd = drawParty('ODBERATEĽ', document_.customer || {}, rightX);
     y = Math.max(supplierEnd, customerEnd) + 6;
 
     // === Údaje dokladu ===
@@ -283,13 +283,16 @@ async function buildPdf(document_) {
         totalsY += 5;
     };
 
+    if (totals.discount > 0) {
+        printTotal('Medzisúčet:', `${Calc.formatAmount(totals.useVat ? totals.grossBeforeDiscount : totals.subtotalBeforeDiscount)} ${currency}`);
+        printTotal('Zľava:', `-${Calc.formatAmount(totals.discount)} ${currency}`);
+    }
     if (totals.useVat) {
         printTotal('Celkom bez DPH:', `${Calc.formatAmount(totals.subtotal)} ${currency}`);
         printTotal('DPH:', `${Calc.formatAmount(totals.vatTotal)} ${currency}`);
     } else {
         printTotal('Celkom:', `${Calc.formatAmount(totals.subtotal)} ${currency}`);
     }
-    if (totals.discount > 0) printTotal('Zľava:', `-${Calc.formatAmount(totals.discount)} ${currency}`);
     if (totals.roundingDiff !== 0) printTotal('Zaokrúhlenie:', `${Calc.formatAmount(totals.roundingDiff)} ${currency}`);
 
     pdf.setDrawColor(color.r, color.g, color.b);

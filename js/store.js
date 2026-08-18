@@ -14,6 +14,7 @@ const DOC_TYPES = {
     faktura: {
         label: 'Faktúra',
         plural: 'Faktúry',
+        genitive: 'faktúry',
         icon: '\u{1F4C4}',
         statuses: {
             koncept: 'Koncept',
@@ -26,6 +27,7 @@ const DOC_TYPES = {
     ponuka: {
         label: 'Cenová ponuka',
         plural: 'Cenové ponuky',
+        genitive: 'cenovej ponuky',
         icon: '\u{1F4CB}',
         statuses: {
             koncept: 'Koncept',
@@ -38,6 +40,7 @@ const DOC_TYPES = {
     objednavka: {
         label: 'Objednávka',
         plural: 'Objednávky',
+        genitive: 'objednávky',
         icon: '\u{1F4E6}',
         statuses: {
             koncept: 'Koncept',
@@ -84,9 +87,9 @@ const DEFAULT_SETTINGS = {
     rounding: 'none',
     logo: '',
     series: {
-        faktura: { pattern: '{YYYY}{NNNN}', next: 1 },
-        ponuka: { pattern: 'CP{YYYY}{NNNN}', next: 1 },
-        objednavka: { pattern: 'OBJ{YYYY}{NNNN}', next: 1 },
+        faktura: { pattern: '{YYYY}{NNNN}', next: 1, year: 0 },
+        ponuka: { pattern: 'CP{YYYY}{NNNN}', next: 1, year: 0 },
+        objednavka: { pattern: 'OBJ{YYYY}{NNNN}', next: 1, year: 0 },
     },
 };
 
@@ -158,19 +161,55 @@ function formatNumberPattern(pattern, counter) {
         .replace(/\{N+\}/g, match => String(counter).padStart(match.length - 2, '0'));
 }
 
+// Regulárny výraz z číselného vzoru; jediná skupina zachytáva počítadlo.
+function numberPatternRegex(pattern) {
+    const escaped = String(pattern || '')
+        .replace(/[.*+?^${}()|[\]\\]/g, match => (/^\{|\}$/.test(match) ? match : '\\' + match));
+    const body = escaped
+        .replace(/\{YYYY\}/g, '\\d{4}')
+        .replace(/\{YY\}/g, '\\d{2}')
+        .replace(/\{MM\}/g, '\\d{2}')
+        .replace(/\{N+\}/g, '(\\d+)');
+    return new RegExp('^' + body + '$');
+}
+
+function counterFromNumber(pattern, number) {
+    const match = numberPatternRegex(pattern).exec(String(number || ''));
+    return match && match[1] !== undefined ? Number(match[1]) : null;
+}
+
+// Číselný rad pre aktuálny rok – pri ročnom vzore sa počítadlo začína od 1.
+function activeSeries(type, settings) {
+    const series = Object.assign({}, DEFAULT_SETTINGS.series[type], (settings.series || {})[type]);
+    const year = new Date().getFullYear();
+    if (/\{YY(YY)?\}/.test(series.pattern) && series.year && series.year !== year) {
+        series.next = 1;
+    }
+    series.year = year;
+    return series;
+}
+
 function peekNextNumber(type) {
-    const series = getSettings().series[type] || DEFAULT_SETTINGS.series[type];
+    const series = activeSeries(type, getSettings());
     return formatNumberPattern(series.pattern, series.next);
 }
 
+// Posunie počítadlo aj keď užívateľ číslo prepíše ručne (aby nevznikli duplicity).
 function consumeNumber(type, usedNumber) {
     const settings = getSettings();
-    const series = settings.series[type] || Object.assign({}, DEFAULT_SETTINGS.series[type]);
-    if (usedNumber === formatNumberPattern(series.pattern, series.next)) {
-        series.next = series.next + 1;
-        settings.series[type] = series;
-        saveSettings(settings);
+    const series = activeSeries(type, settings);
+    const counter = counterFromNumber(series.pattern, usedNumber);
+    if (counter !== null) {
+        series.next = Math.max(series.next, counter + 1);
     }
+    settings.series[type] = series;
+    saveSettings(settings);
+}
+
+function numberExists(type, number, excludeId) {
+    const target = String(number || '').trim().toLowerCase();
+    if (!target) return false;
+    return getDocuments(type).some(doc => doc.id !== excludeId && String(doc.number || '').trim().toLowerCase() === target);
 }
 
 // === Documents ===
@@ -214,7 +253,9 @@ function saveDocument(doc) {
         consumeNumber(record.type, record.number);
     }
 
-    writeJson(KEYS.documents, all);
+    if (!writeJson(KEYS.documents, all)) {
+        throw new Error('Doklad sa nepodarilo uložiť – úložisko prehliadača je plné.');
+    }
     return record;
 }
 
@@ -233,7 +274,7 @@ function setDocumentStatus(id, status) {
 function createDocument(type, overrides) {
     const settings = getSettings();
     const today = new Date();
-    const iso = date => date.toISOString().split('T')[0];
+    const iso = date => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 
     const dueDate = new Date(today);
     dueDate.setDate(dueDate.getDate() + Number(settings.defaultDueDays || 14));
@@ -444,6 +485,7 @@ window.Store = {
     saveSettings,
     peekNextNumber,
     formatNumberPattern,
+    numberExists,
     getDocuments,
     getDocument,
     saveDocument,

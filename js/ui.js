@@ -113,10 +113,12 @@ function documentPreviewHtml(doc) {
                 </tbody>
             </table>
             <div class="inv-totals">
+                ${totals.discount > 0 ? `
+                    <p>Medzisúčet: ${Calc.formatAmount(totals.useVat ? totals.grossBeforeDiscount : totals.subtotalBeforeDiscount)} ${currency}</p>
+                    <p>Zľava: -${Calc.formatAmount(totals.discount)} ${currency}</p>` : ''}
                 ${totals.useVat ? `
                     <p>Celkom bez DPH: ${Calc.formatAmount(totals.subtotal)} ${currency}</p>
                     <p>DPH: ${Calc.formatAmount(totals.vatTotal)} ${currency}</p>` : ''}
-                ${totals.discount > 0 ? `<p>Zľava: -${Calc.formatAmount(totals.discount)} ${currency}</p>` : ''}
                 ${totals.roundingDiff !== 0 ? `<p>Zaokrúhlenie: ${Calc.formatAmount(totals.roundingDiff)} ${currency}</p>` : ''}
                 <p class="final">Na úhradu: ${Calc.formatAmount(totals.total)} ${currency}</p>
             </div>
@@ -125,10 +127,12 @@ function documentPreviewHtml(doc) {
 }
 
 function showDocumentPreview(doc) {
+    // Nečíslovaný náhľad z editora nemá ešte uložený doklad – PDF sa generuje z formulára.
+    const stored = Boolean(Store.getDocument(doc.id));
     openModal(
         `${Store.DOC_TYPES[doc.type].label} ${doc.number || ''}`.trim(),
         documentPreviewHtml(doc),
-        `<button type="button" class="btn-primary" data-action="pdf" data-id="${doc.id}">&#128229; Stiahnuť PDF</button>
+        `<button type="button" class="btn-primary" data-action="${stored ? 'pdf' : 'editor-pdf'}" data-id="${doc.id}">&#128229; Stiahnuť PDF</button>
          <button type="button" class="btn-secondary" data-action="modal-close">Zavrieť</button>`
     );
 }
