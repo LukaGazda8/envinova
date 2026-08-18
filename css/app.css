@@ -1,0 +1,590 @@
+/* === Aplikačný shell, zoznamy dokladov, prehľad === */
+
+:root {
+    --brand: #1976D2;
+    --brand-dark: #10508f;
+    --ink: #1b2230;
+    --muted: #6b7280;
+    --line: #e4e9f0;
+    --bg: #f5f7fa;
+    --ok: #1e8e3e;
+    --warn: #b26a00;
+    --err: #c62828;
+}
+
+body {
+    background: var(--bg);
+}
+
+.hidden {
+    display: none !important;
+}
+
+.layout {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* --- Sidebar --- */
+
+.sidebar {
+    width: 232px;
+    flex: 0 0 232px;
+    background: #10203a;
+    color: #dfe6f2;
+    display: flex;
+    flex-direction: column;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 1.1rem 1.2rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.brand-mark {
+    width: 34px;
+    height: 34px;
+    border-radius: 9px;
+    background: linear-gradient(135deg, #1976D2, #42A5F5);
+    color: #fff;
+    display: grid;
+    place-items: center;
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+.brand-text {
+    display: flex;
+    flex-direction: column;
+    font-weight: 600;
+    line-height: 1.1;
+}
+
+.brand-text small {
+    font-weight: 400;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    opacity: 0.6;
+}
+
+.side-nav {
+    display: flex;
+    flex-direction: column;
+    padding: 0.8rem 0.6rem;
+    gap: 0.15rem;
+    flex: 1;
+    overflow-y: auto;
+}
+
+.side-nav a {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.6rem 0.75rem;
+    border-radius: 8px;
+    color: #c8d3e6;
+    text-decoration: none;
+    font-size: 0.94rem;
+}
+
+.side-nav a:hover {
+    background: rgba(255, 255, 255, 0.07);
+    color: #fff;
+}
+
+.side-nav a.active {
+    background: var(--brand);
+    color: #fff;
+    font-weight: 600;
+}
+
+.side-footer {
+    padding: 0.8rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+}
+
+.btn-block {
+    width: 100%;
+    justify-content: center;
+}
+
+/* --- Content + topbar --- */
+
+.content {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.topbar {
+    background: #fff;
+    color: var(--ink);
+    border-bottom: 1px solid var(--line);
+    padding: 0.85rem 1.5rem;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+}
+
+.topbar h1 {
+    font-size: 1.35rem;
+    margin: 0;
+    flex: 1;
+}
+
+.topbar-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.btn-icon {
+    background: transparent;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 0.35rem 0.6rem;
+    font-size: 1.1rem;
+    cursor: pointer;
+    color: var(--ink);
+}
+
+.menu-toggle {
+    display: none;
+}
+
+.view {
+    padding: 1.5rem;
+    flex: 1;
+}
+
+/* --- Karty a mriežky --- */
+
+.card {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(16, 32, 58, 0.05);
+    padding: 1.2rem 1.4rem;
+    margin-bottom: 1.2rem;
+}
+
+.card-title {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 0.9rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.2rem;
+}
+
+.stat {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 1rem 1.1rem;
+    box-shadow: 0 2px 8px rgba(16, 32, 58, 0.05);
+}
+
+.stat .stat-label {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+}
+
+.stat .stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin-top: 0.25rem;
+}
+
+.stat .stat-sub {
+    font-size: 0.82rem;
+    color: var(--muted);
+}
+
+.stat.accent .stat-value { color: var(--brand); }
+.stat.danger .stat-value { color: var(--err); }
+.stat.success .stat-value { color: var(--ok); }
+
+/* --- Filtre --- */
+
+.filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    align-items: flex-end;
+    margin-bottom: 1rem;
+}
+
+.filters .filter {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.filters label {
+    font-size: 0.76rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.filters input,
+.filters select {
+    padding: 0.45rem 0.6rem;
+    border: 1px solid #d5dbe4;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    background: #fff;
+}
+
+.filters .grow {
+    flex: 1;
+    min-width: 180px;
+}
+
+.filters .grow input {
+    width: 100%;
+}
+
+/* --- Tabuľky zoznamov --- */
+
+.table-wrap {
+    overflow-x: auto;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.92rem;
+}
+
+.data-table th {
+    text-align: left;
+    padding: 0.6rem 0.7rem;
+    background: #f2f5fa;
+    color: #4a5361;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+}
+
+.data-table td {
+    padding: 0.6rem 0.7rem;
+    border-bottom: 1px solid #eef1f6;
+    vertical-align: middle;
+}
+
+.data-table tbody tr:hover {
+    background: #f8fbff;
+}
+
+.data-table .num {
+    text-align: right;
+    white-space: nowrap;
+}
+
+.data-table .doc-number {
+    font-weight: 600;
+    color: var(--brand);
+    cursor: pointer;
+}
+
+.row-actions {
+    display: flex;
+    gap: 0.3rem;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+}
+
+.row-actions button {
+    border: 1px solid var(--line);
+    background: #fff;
+    border-radius: 7px;
+    padding: 0.25rem 0.45rem;
+    cursor: pointer;
+    font-size: 0.85rem;
+    line-height: 1.2;
+}
+
+.row-actions button:hover {
+    background: #eef4ff;
+    border-color: #bcd4f5;
+}
+
+.row-actions button.danger:hover {
+    background: #fdecec;
+    border-color: #f3c0c0;
+}
+
+/* --- Stavové odznaky --- */
+
+.badge {
+    display: inline-block;
+    padding: 0.15rem 0.55rem;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    white-space: nowrap;
+    background: #eef1f6;
+    color: #4a5361;
+}
+
+.badge.koncept { background: #eef1f6; color: #55606f; }
+.badge.odoslana { background: #e3f0ff; color: #1565c0; }
+.badge.zaplatena,
+.badge.prijata,
+.badge.vybavena { background: #e6f5ea; color: #1e7a34; }
+.badge.stornovana,
+.badge.odmietnuta,
+.badge.zrusena { background: #f1f2f4; color: #7a8390; text-decoration: line-through; }
+.badge.potvrdena { background: #fff3dc; color: #96620a; }
+.badge.overdue { background: #fdecec; color: #c62828; }
+.badge.expired { background: #fdf0e3; color: #b26a00; }
+
+.empty-state {
+    text-align: center;
+    padding: 2.5rem 1rem;
+    color: var(--muted);
+}
+
+.empty-state .empty-icon {
+    font-size: 2.4rem;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+/* --- Mesačný graf --- */
+
+.bar-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.6rem;
+    height: 160px;
+    padding-top: 0.5rem;
+}
+
+.bar-chart .bar-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 0.35rem;
+    height: 100%;
+}
+
+.bar-chart .bar {
+    width: 100%;
+    max-width: 46px;
+    background: linear-gradient(180deg, #42A5F5, #1976D2);
+    border-radius: 6px 6px 0 0;
+    min-height: 2px;
+}
+
+.bar-chart .bar-label {
+    font-size: 0.72rem;
+    color: var(--muted);
+}
+
+.bar-chart .bar-value {
+    font-size: 0.72rem;
+    color: var(--ink);
+    font-weight: 600;
+}
+
+/* --- Editor overlay --- */
+
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(16, 32, 58, 0.55);
+    z-index: 50;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 1.5rem;
+    overflow-y: auto;
+}
+
+.overlay-panel {
+    background: var(--bg);
+    border-radius: 14px;
+    width: 100%;
+    max-width: 1060px;
+    overflow: hidden;
+    box-shadow: 0 24px 60px rgba(8, 18, 34, 0.35);
+}
+
+.overlay-header {
+    background: #fff;
+    color: var(--ink);
+    border-bottom: 1px solid var(--line);
+    padding: 0.9rem 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    position: sticky;
+    top: 0;
+    z-index: 5;
+}
+
+.overlay-header h2 {
+    font-size: 1.15rem;
+    flex: 1;
+    margin: 0;
+}
+
+.overlay-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.overlay-body {
+    padding: 1.2rem;
+    max-height: calc(100vh - 9rem);
+    overflow-y: auto;
+}
+
+.overlay-body .form-section {
+    padding: 1.1rem 1.3rem;
+}
+
+.editor-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.2rem;
+    justify-content: flex-end;
+    align-items: center;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 0.9rem 1.3rem;
+    position: sticky;
+    bottom: 0;
+}
+
+.editor-summary .sum {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    font-size: 0.85rem;
+    color: var(--muted);
+}
+
+.editor-summary .sum strong {
+    font-size: 1.05rem;
+    color: var(--ink);
+}
+
+.editor-summary .sum.final strong {
+    font-size: 1.4rem;
+    color: var(--brand);
+}
+
+.inline-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.8rem;
+}
+
+.related-note {
+    background: #eef4ff;
+    border: 1px solid #cfe0fb;
+    color: #1a4f92;
+    border-radius: 10px;
+    padding: 0.6rem 0.9rem;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+}
+
+/* --- Modálne okno --- */
+
+.modal-content {
+    max-width: 860px;
+}
+
+.modal-footer {
+    gap: 0.5rem;
+}
+
+/* --- Toasty --- */
+
+.toast-container {
+    position: fixed;
+    right: 1rem;
+    bottom: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    z-index: 100;
+}
+
+.toast {
+    background: #10203a;
+    color: #fff;
+    padding: 0.7rem 1rem;
+    border-radius: 10px;
+    box-shadow: 0 8px 20px rgba(8, 18, 34, 0.28);
+    font-size: 0.9rem;
+    max-width: 340px;
+}
+
+.toast.success { background: #1e7a34; }
+.toast.error { background: #c62828; }
+
+/* --- Responzívne --- */
+
+@media (max-width: 900px) {
+    .sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        z-index: 60;
+        transform: translateX(-100%);
+        transition: transform 0.2s ease;
+    }
+
+    .sidebar.open {
+        transform: translateX(0);
+    }
+
+    .menu-toggle {
+        display: inline-block;
+    }
+
+    .topbar-actions .btn-secondary {
+        display: none;
+    }
+}
