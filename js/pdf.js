@@ -108,14 +108,11 @@ function metaRows(doc, totals) {
         if (doc.specificSymbol) rows.push(['Špecifický symbol', doc.specificSymbol]);
     } else if (doc.type === 'ponuka') {
         rows.push(['Platnosť ponuky do', Calc.formatDate(doc.validUntil)]);
-        
     } else {
         rows.push(['Dátum dodania', Calc.formatDate(doc.deliveryDate)]);
         rows.push(['Forma úhrady', Calc.PAYMENT_METHODS[doc.paymentMethod] || doc.paymentMethod || '']);
-        
     }
 
-    rows.push(['Celková suma', Calc.formatMoney(totals.total, doc.currency)]);
     return rows;
 }
 
