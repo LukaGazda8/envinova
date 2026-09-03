@@ -1,4 +1,4 @@
-# Envinova Doklady
+# DocuFlow
 
 Kompletný systém na generovanie a ukladanie **faktúr, cenových ponúk a objednávok**
 (inšpirované [flowii.com](https://www.flowii.com)). Beží ako statická webová aplikácia
