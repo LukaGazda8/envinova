@@ -115,8 +115,7 @@ function metaRows(doc, totals) {
         
     }
 
-    rows.push(['Celková suma', Calc.formatMoney(totals.total, doc.currency)]);
-    return rows;
+    
 }
 
 async function buildPdf(document_) {
