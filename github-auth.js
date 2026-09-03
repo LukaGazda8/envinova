@@ -1,6 +1,6 @@
 // === KONFIGURÁCIA ===
-const GITHUB_CLIENT_ID = 'TVOJ_GITHUB_CLIENT_ID';
-const WORKER_URL = 'https://tvoj-worker.workers.dev'; // URL adresa tvojho Cloudflare Workeru
+const GITHUB_CLIENT_ID = 'Ov23lifhhRo1cn8W1sB4';
+const WORKER_URL = 'https://docuflow.gazdarica-luka.workers.dev/'; // URL adresa tvojho Cloudflare Workeru
 
 // 1. Presmerovanie na GitHub prihlásenie
 function loginWithGithub() {
