@@ -66,3 +66,5 @@ async function initGithubGist(token) {
 
 // Spustíme kontrolu pri načítaní stránky
 window.addEventListener('DOMContentLoaded', handleGithubCallback);
+// Sprístupní funkciu pre onclick v HTML
+window.loginWithGithub = loginWithGithub;
